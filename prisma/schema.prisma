@@ -1,0 +1,233 @@
+// Prisma schema for suNRIseevent '27
+// PostgreSQL is used in every environment. Local development can use the
+// embedded Postgres helper in scripts/dev.mjs, Docker Compose, or a managed DB.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  STUDENT
+  ADMIN
+}
+
+enum EventCategory {
+  TECHNICAL
+  NON_TECHNICAL
+  WORKSHOP
+  CULTURAL
+}
+
+enum RegistrationStatus {
+  CONFIRMED
+  CANCELLED
+}
+
+model User {
+  id                  String    @id @default(cuid())
+  email               String    @unique
+  passwordHash        String
+  name                String
+  phone               String
+  college             String
+  department          String
+  year                String
+  rollNumber          String
+  role                Role      @default(STUDENT)
+  emailVerified       Boolean   @default(false)
+  failedLoginAttempts Int       @default(0)
+  lockedUntil         DateTime?
+  lastLoginAt         DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  registration  Registration?
+  sessions      Session[]
+  verification  EmailVerificationToken[]
+  passwordReset PasswordResetToken[]
+  uploads       Upload[]
+  auditLogs     AuditLog[]
+
+  @@index([college])
+  @@index([department])
+  @@map("users")
+}
+
+/// One fest pass per student. The QR payload is the opaque qrToken.
+model Registration {
+  id             String             @id @default(cuid())
+  registrationId String             @unique
+  qrToken        String             @unique
+  status         RegistrationStatus @default(CONFIRMED)
+  checkedInAt    DateTime?
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  eventRegistrations EventRegistration[]
+
+  @@index([createdAt])
+  @@map("registrations")
+}
+
+model EventRegistration {
+  id             String    @id @default(cuid())
+  attended       Boolean   @default(false)
+  attendedAt     DateTime?
+  createdAt      DateTime  @default(now())
+
+  registrationId String
+  registration   Registration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+
+  eventId String
+  event   Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@unique([registrationId, eventId])
+  @@index([eventId])
+  @@map("event_registrations")
+}
+
+model Session {
+  id           String    @id @default(cuid())
+  tokenHash    String    @unique
+  userId       String
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt    DateTime
+  revokedAt    DateTime?
+  replacedById String?
+  ip           String?
+  userAgent    String?
+  createdAt    DateTime  @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("sessions")
+}
+
+model EmailVerificationToken {
+  id        String    @id @default(cuid())
+  tokenHash String    @unique
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+  @@map("email_verification_tokens")
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  tokenHash String    @unique
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+  @@map("password_reset_tokens")
+}
+
+model Department {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  shortName   String
+  description String
+  tagline     String?
+  accent      String   @default("cyan")
+  icon        String   @default("cpu")
+  sortOrder   Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  events Event[]
+
+  @@map("departments")
+}
+
+model Event {
+  id           String        @id @default(cuid())
+  slug         String        @unique
+  title        String
+  description  String
+  category     EventCategory
+  day          Int
+  startTime    String
+  endTime      String
+  venue        String
+  prize        String
+  rules        String[]
+  coordinators Json
+  capacity     Int           @default(100)
+  teamSize     String        @default("1-4")
+  fee          Int           @default(0)
+  isFeatured   Boolean       @default(false)
+  isActive     Boolean       @default(true)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  departmentId String
+  department   Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+
+  registrations EventRegistration[]
+
+  @@index([departmentId])
+  @@index([category])
+  @@index([day])
+  @@map("events")
+}
+
+model Upload {
+  id           String   @id @default(cuid())
+  originalName String
+  storedName   String   @unique
+  mimeType     String
+  size         Int
+  kind         String   @default("COLLEGE_ID")
+  createdAt    DateTime @default(now())
+
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@map("uploads")
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  action    String
+  detail    String?
+  ip        String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([action])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  subject   String
+  message   String
+  ip        String?
+  createdAt DateTime @default(now())
+
+  @@map("contact_messages")
+}

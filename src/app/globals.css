@@ -1,0 +1,333 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #05010d;
+  --panel: #0d0620;
+  --ink: #f1edff;
+  --muted: #a79dc9;
+  --cyan: #00f0ff;
+  --magenta: #ff2d95;
+  --orange: #ff8a00;
+  --purple: #8b5cf6;
+  --lime: #a3ff12;
+}
+
+@layer base {
+  * {
+    @apply border-white/10;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-ink-950 text-white antialiased;
+    font-family: var(--font-body), sans-serif;
+    background-image:
+      radial-gradient(ellipse 60% 40% at 15% -5%, rgba(139, 92, 246, 0.14), transparent 65%),
+      radial-gradient(ellipse 50% 40% at 95% 0%, rgba(255, 45, 149, 0.1), transparent 60%);
+    background-attachment: fixed;
+    overflow-x: hidden;
+  }
+
+  ::selection {
+    background: rgba(255, 45, 149, 0.45);
+    color: #fff;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #05010d;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #ff2d95, #8b5cf6, #00f0ff);
+    border-radius: 999px;
+    border: 2px solid #05010d;
+  }
+
+  :focus-visible {
+    outline: 2px solid #00f0ff;
+    outline-offset: 3px;
+    border-radius: 6px;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display), sans-serif;
+    letter-spacing: -0.02em;
+  }
+
+  input, textarea, select {
+    color-scheme: dark;
+  }
+
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  textarea:-webkit-autofill,
+  select:-webkit-autofill {
+    -webkit-box-shadow: 0 0 0 1000px #130a2b inset;
+    -webkit-text-fill-color: #f1edff;
+    caret-color: #00f0ff;
+    transition: background-color 9999s ease-out 0s;
+  }
+
+  .skip-link {
+    @apply absolute left-4 top-4 z-[200] -translate-y-24 rounded-full bg-neon-cyan px-5 py-2 font-semibold text-ink-950 transition-transform focus:translate-y-0;
+  }
+}
+
+@layer components {
+  .container-fest {
+    @apply mx-auto w-full max-w-7xl px-5 sm:px-8 lg:px-10;
+  }
+
+  .section-pad {
+    @apply py-20 md:py-28;
+  }
+
+  .eyebrow {
+    @apply inline-flex items-center gap-2 font-mono text-[11px] font-medium uppercase tracking-[0.32em] text-neon-cyan;
+  }
+
+  .eyebrow::before {
+    content: "";
+    @apply h-px w-8 bg-neon-cyan;
+    box-shadow: 0 0 10px #00f0ff;
+  }
+
+  .text-gradient {
+    @apply bg-fest-gradient bg-clip-text text-transparent;
+    background-size: 200% 200%;
+    animation: shimmer 8s linear infinite;
+  }
+
+  .text-gradient-warm {
+    background: linear-gradient(100deg, #ff8a00, #ff2d95 45%, #c084fc 90%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .glass {
+    @apply border border-white/10 bg-white/[0.035] backdrop-blur-xl;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 24px 60px -30px rgba(0, 0, 0, 0.9);
+  }
+
+  .glass-strong {
+    @apply border border-white/15 bg-ink-900/80 backdrop-blur-2xl;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 30px 80px -40px rgba(0, 0, 0, 1);
+  }
+
+  .neon-frame {
+    position: relative;
+    border: 1px solid transparent;
+    background:
+      linear-gradient(#0b0418, #0b0418) padding-box,
+      linear-gradient(135deg, rgba(0, 240, 255, 0.5), rgba(255, 45, 149, 0.18) 45%, rgba(139, 92, 246, 0.45)) border-box;
+  }
+
+  .neon-frame-hover {
+    transition: box-shadow 0.35s ease, transform 0.35s ease;
+  }
+  .neon-frame-hover:hover {
+    box-shadow: 0 0 0 1px rgba(0, 240, 255, 0.25), 0 22px 60px -30px rgba(0, 240, 255, 0.45);
+  }
+
+  .micro-label {
+    @apply font-mono text-[10px] uppercase tracking-[0.28em] text-white/45;
+  }
+
+  .grid-bg {
+    background-image:
+      linear-gradient(rgba(0, 240, 255, 0.055) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 45, 149, 0.055) 1px, transparent 1px);
+    background-size: 56px 56px;
+  }
+
+  .grid-bg-sm {
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.045) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.045) 1px, transparent 1px);
+    background-size: 26px 26px;
+  }
+
+  .aurora {
+    position: absolute;
+    border-radius: 999px;
+    filter: blur(80px);
+    opacity: 0.55;
+    pointer-events: none;
+    will-change: transform;
+  }
+
+  .grain::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    pointer-events: none;
+    opacity: 0.035;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  .divider-neon {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(0, 240, 255, 0.45), rgba(255, 45, 149, 0.45), transparent);
+  }
+
+  .btn-shine {
+    position: relative;
+    overflow: hidden;
+  }
+  .btn-shine::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(110deg, transparent 25%, rgba(255, 255, 255, 0.35) 50%, transparent 75%);
+    transform: translateX(-120%);
+    transition: transform 0.7s ease;
+  }
+  .btn-shine:hover::after {
+    transform: translateX(120%);
+  }
+
+  .input-base {
+    @apply w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-[15px] text-white placeholder:text-white/30 transition focus:border-neon-cyan/60 focus:bg-white/[0.06] focus:outline-none focus:ring-2 focus:ring-neon-cyan/20;
+  }
+
+  .prose-fest {
+    @apply text-white/65;
+  }
+  .prose-fest p {
+    @apply mb-4 leading-relaxed;
+  }
+  .prose-fest h2 {
+    @apply mb-3 mt-8 text-2xl text-white;
+  }
+  .prose-fest h3 {
+    @apply mb-2 mt-6 text-lg text-white;
+  }
+  .prose-fest a {
+    @apply text-neon-cyan underline-offset-4 hover:underline;
+  }
+
+  .tilt-card {
+    transform-style: preserve-3d;
+    transition: transform 0.2s ease, box-shadow 0.3s ease;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .mask-fade-x {
+    mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+    -webkit-mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+  }
+}
+
+@layer utilities {
+  .perspective-1000 {
+    perspective: 1000px;
+  }
+  .preserve-3d {
+    transform-style: preserve-3d;
+  }
+  .backface-hidden {
+    backface-visibility: hidden;
+  }
+  .text-balance {
+    text-wrap: balance;
+  }
+  .text-pretty {
+    text-wrap: pretty;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * Custom cursor: only enabled by the cursor component on fine pointers.
+ * Native cursor is hidden for the whole document; text fields keep a caret.
+ * ------------------------------------------------------------------------- */
+html.has-custom-cursor,
+html.has-custom-cursor a,
+html.has-custom-cursor button,
+html.has-custom-cursor [role="button"] {
+  cursor: none;
+}
+html.has-custom-cursor input,
+html.has-custom-cursor textarea,
+html.has-custom-cursor select {
+  cursor: text;
+}
+
+/* ---------------------------------------------------------------------------
+ * Intro + hero hologram: CSS 3D gyroscope rings.
+ * Each ring lives on its own transform plane; a small bead makes the spin
+ * readable even though the ring itself is symmetric.
+ * ------------------------------------------------------------------------- */
+@keyframes gyro-a {
+  from {
+    transform: rotateX(70deg) rotateZ(0deg);
+  }
+  to {
+    transform: rotateX(70deg) rotateZ(360deg);
+  }
+}
+
+@keyframes gyro-b {
+  from {
+    transform: rotateX(-62deg) rotateY(18deg) rotateZ(0deg);
+  }
+  to {
+    transform: rotateX(-62deg) rotateY(18deg) rotateZ(-360deg);
+  }
+}
+
+@keyframes gyro-c {
+  from {
+    transform: rotateY(74deg) rotateZ(0deg);
+  }
+  to {
+    transform: rotateY(74deg) rotateZ(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .aurora,
+  .animate-marquee,
+  .animate-marquee-reverse {
+    display: none !important;
+  }
+}
+
+@media print {
+  nav, footer, .no-print {
+    display: none !important;
+  }
+  body {
+    background: #fff;
+    color: #000;
+  }
+}
