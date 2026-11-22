@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
   accessTokenTtlSeconds,
+  hashEmailOtp,
   hashToken,
+  newEmailOtp,
   newQrToken,
   newRegistrationId,
   parseQrPayload,
@@ -62,6 +64,21 @@ describe("token hashing", () => {
     expect(safeEqual("abc", "abc")).toBe(true);
     expect(safeEqual("abc", "abd")).toBe(false);
     expect(safeEqual("abc", "abcd")).toBe(false);
+  });
+});
+
+describe("email OTPs", () => {
+  it("generates six-digit codes, including leading zeros when padded", () => {
+    for (let index = 0; index < 50; index += 1) {
+      expect(newEmailOtp()).toMatch(/^\d{6}$/);
+    }
+  });
+
+  it("binds a deterministic hash to the email", () => {
+    const otp = "042915";
+    expect(hashEmailOtp("Student@SunriseEvent.in", otp)).toBe(hashEmailOtp("student@sunriseevent.in", otp));
+    expect(hashEmailOtp("student@sunriseevent.in", otp)).not.toBe(hashEmailOtp("other@sunriseevent.in", otp));
+    expect(hashEmailOtp("student@sunriseevent.in", otp)).not.toBe(hashEmailOtp("student@sunriseevent.in", "042916"));
   });
 });
 

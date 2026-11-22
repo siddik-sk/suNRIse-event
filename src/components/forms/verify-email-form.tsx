@@ -110,7 +110,7 @@ export function VerifyEmailForm({ token, email = "" }: { token: string; email?: 
       <p className="mt-3 max-w-md text-sm leading-relaxed text-white/45">
         {state === "error"
           ? message
-          : "Enter the email you registered with and we’ll send a fresh verification link. The link expires in 24 hours."}
+          : "Enter the email you registered with and we'll send a fresh 6-digit code and verification link. You can also enter the code on the login page."}
       </p>
 
       <form onSubmit={resend} className="mt-8 space-y-4" noValidate>
@@ -128,9 +128,16 @@ export function VerifyEmailForm({ token, email = "" }: { token: string; email?: 
           )}
         </Field>
         <Button type="submit" className="w-full" size="lg" loading={resending} icon={<Send className="h-4 w-4" />}>
-          Resend verification link
+          Resend code &amp; link
         </Button>
       </form>
+
+      <p className="mt-4 text-center text-xs text-white/35">
+        Got a code instead?{" "}
+        <Link href="/login" className="font-semibold text-neon-cyan hover:underline">
+          Enter it on the login page
+        </Link>
+      </p>
 
       <p className="mt-6 text-center text-sm text-white/40">
         Already verified?{" "}

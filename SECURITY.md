@@ -31,6 +31,7 @@ Only the latest production deployment is supported. There are no maintained olde
 - Refresh tokens **rotate on every use**. Presenting a rotated token again is treated as theft and revokes the user's entire session family.
 - Accounts lock temporarily after repeated failed logins; attempts are rate limited by IP and account.
 - Email verification is required before sensitive actions (`requireVerifiedUser`).
+- Verification uses a 6-digit OTP (hashed at rest, 10-minute TTL, five-attempt cap, per-email/IP rate limits) in addition to a 24-hour link.
 - Roles are enforced **server-side** (`requireAdmin`, admin layout guard). Middleware only performs a cheap cookie-presence gate and never replaces a real authorization check.
 
 ### Cookies and CSRF
@@ -84,7 +85,7 @@ Authenticated pages are marked `noindex`.
 - [ ] Run `npx prisma migrate deploy`; do not use `db push` in production.
 - [ ] Remove or rotate the seeded demo accounts.
 - [ ] Configure Turnstile keys and verify the captcha challenge is enforced.
-- [ ] Configure SMTP or Resend; confirm verification and reset emails deliver.
+- [ ] Configure SMTP or Resend; confirm verification links **and 6-digit OTP emails** deliver.
 - [ ] Move college-ID storage to private object storage (S3/R2) with short-lived signed URLs.
 - [ ] Replace the in-memory rate limiter with Redis for multi-instance deployments.
 - [ ] Terminate TLS at the platform edge and keep HSTS enabled.

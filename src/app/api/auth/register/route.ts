@@ -1,8 +1,8 @@
 import { ApiError, assertCsrf, json, withApi } from "@/lib/api";
 import { hashPassword } from "@/lib/auth/password";
 import { safeUserSelect } from "@/lib/auth/session";
-import { hashToken, randomToken } from "@/lib/auth/tokens";
-import { sendRegistrationConfirmation, sendVerificationEmail } from "@/lib/email";
+import { issueEmailVerification } from "@/lib/auth/verification";
+import { sendRegistrationConfirmation } from "@/lib/email";
 import prisma from "@/lib/prisma";
 import { createFestRegistration, findScheduleConflict, loadSelectableEvents } from "@/lib/registrations";
 import { verifyCaptcha } from "@/lib/security/captcha";
@@ -78,7 +78,6 @@ export const POST = withApi(async (req) => {
 
   try {
     const passwordHash = await hashPassword(input.password);
-    const verificationRaw = randomToken(32);
 
     const user = await prisma.user.create({
       data: {
@@ -91,12 +90,6 @@ export const POST = withApi(async (req) => {
         year: input.year,
         rollNumber: input.rollNumber,
         emailVerified: false,
-        verification: {
-          create: {
-            tokenHash: hashToken(verificationRaw),
-            expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
-          },
-        },
         ...(upload
           ? {
               uploads: {
@@ -123,8 +116,8 @@ export const POST = withApi(async (req) => {
       venue: event.venue,
     }));
 
-    await Promise.all([
-      sendVerificationEmail(user.email, user.name, verificationRaw, user.id),
+    const [verification] = await Promise.all([
+      issueEmailVerification({ user, req }),
       sendRegistrationConfirmation({
         to: user.email,
         name: user.name,
@@ -148,7 +141,8 @@ export const POST = withApi(async (req) => {
         registrationId: registration.registrationId,
         requiresVerification: true,
         message:
-          "You're in! Check your email to verify your account and download your QR pass.",
+          "You're in! Check your email for your 6-digit verification code and QR pass.",
+        ...(verification.devOtp ? { devOtp: verification.devOtp } : {}),
       },
       { status: 201 },
     );

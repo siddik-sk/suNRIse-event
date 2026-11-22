@@ -71,6 +71,20 @@ export function safeEqual(a: string, b: string): boolean {
   return timingSafeEqual(ab, bb);
 }
 
+/** Email OTP lifetime and verification attempt cap. */
+export const EMAIL_OTP_TTL_MS = 10 * 60 * 1000;
+export const EMAIL_OTP_MAX_ATTEMPTS = 5;
+
+/** Six-digit numeric OTP that keeps leading zeros. */
+export function newEmailOtp(): string {
+  return String(randomInt(0, 1_000_000)).padStart(6, "0");
+}
+
+/** OTPs are stored as keyed hashes bound to the account email. */
+export function hashEmailOtp(email: string, otp: string): string {
+  return hashToken(`email-otp:${email.trim().toLowerCase()}:${otp.trim()}`);
+}
+
 const ID_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 
 /** Human-readable registration ID, e.g. SUN27-K7M2QX. */

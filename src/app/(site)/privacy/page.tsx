@@ -25,7 +25,7 @@ const sections = [
     body: [
       "To create and manage your fest pass, verify that you are a currently enrolled student, and allocate event seats.",
       "To run check-in and attendance at the venue, including scanning your QR pass.",
-      "To send transactional email such as verification links, password resets, pass details and essential fest updates.",
+      "To send transactional email such as verification codes and links, password resets, pass details and essential fest updates.",
       "To keep the platform secure, investigate abuse and comply with legal obligations.",
       "To produce anonymised aggregate statistics for reporting and sponsorship.",
     ],

@@ -1,6 +1,7 @@
 import { ApiError, assertCsrf, json, parseJson, withApi } from "@/lib/api";
 import { fakePasswordCheck, verifyPassword } from "@/lib/auth/password";
 import { issueSession, safeUserSelect } from "@/lib/auth/session";
+import { issueEmailVerification } from "@/lib/auth/verification";
 import prisma from "@/lib/prisma";
 import { verifyCaptcha } from "@/lib/security/captcha";
 import { getClientIp, rateLimitOrThrow } from "@/lib/security/rate-limit";
@@ -62,10 +63,24 @@ export const POST = withApi(async (req) => {
   }
 
   if (!user.emailVerified) {
-    throw new ApiError(
-      403,
-      "Verify your email before logging in. Check your inbox or resend the verification link.",
-      "EMAIL_UNVERIFIED",
+    const verification = await issueEmailVerification({ user, req });
+    await logSecurityEvent({
+      action: "VERIFICATION_RESENT",
+      detail: "Verification code issued after a login attempt.",
+      userId: user.id,
+      req,
+    });
+
+    return json(
+      {
+        ok: false,
+        error: "We emailed you a 6-digit verification code. Enter it below to activate your account.",
+        code: "EMAIL_UNVERIFIED",
+        email: user.email,
+        otpSent: true,
+        ...(verification.devOtp ? { devOtp: verification.devOtp } : {}),
+      },
+      { status: 403 },
     );
   }
 

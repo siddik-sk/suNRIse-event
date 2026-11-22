@@ -344,14 +344,18 @@ export function RegisterForm({ events }: { events: RegisterEventOption[] }) {
       body.append("data", JSON.stringify(parsed.data));
       body.append("collegeId", collegeId);
 
-      const data = await apiFetch<{ email: string; registrationId: string }>("/api/auth/register", {
-        method: "POST",
-        formData: body,
-      });
+      const data = await apiFetch<{ email: string; registrationId: string; devOtp?: string }>(
+        "/api/auth/register",
+        {
+          method: "POST",
+          formData: body,
+        },
+      );
 
-      toast("Pass created. Check your inbox to verify your email.", "success");
+      toast("Pass created. Check your inbox for your 6-digit verification code.", "success");
+      const otpParam = data.devOtp ? `&otp=${encodeURIComponent(data.devOtp)}` : "";
       router.push(
-        `/register/success?email=${encodeURIComponent(data.email)}&id=${encodeURIComponent(data.registrationId)}`,
+        `/register/success?email=${encodeURIComponent(data.email)}&id=${encodeURIComponent(data.registrationId)}${otpParam}`,
       );
     } catch (caught) {
       if (caught instanceof ApiClientError) {
@@ -469,7 +473,7 @@ export function RegisterForm({ events }: { events: RegisterEventOption[] }) {
                         />
                       )}
                     </Field>
-                    <Field label="Email address" error={errors.email} hint="We send a verification link here." required>
+                    <Field label="Email address" error={errors.email} hint="We email a 6-digit verification code here." required>
                       {(props) => (
                         <Input
                           {...props}

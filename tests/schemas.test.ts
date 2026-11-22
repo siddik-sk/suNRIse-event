@@ -10,6 +10,7 @@ import {
   phone,
   registerSchema,
   updateProfileSchema,
+  verifyOtpSchema,
 } from "@/lib/validation/schemas";
 
 const eventId = "clx0event0000000000000001";
@@ -90,6 +91,20 @@ describe("login and profile schemas", () => {
       rollNumber: "22nri1cs087",
     });
     expect(parsed.rollNumber).toBe("22NRI1CS087");
+  });
+});
+
+describe("verifyOtpSchema", () => {
+  it("accepts six digits and strips whitespace", () => {
+    const parsed = verifyOtpSchema.parse({ email: "  SAI@Example.COM ", otp: "04 29 15" });
+    expect(parsed.email).toBe("sai@example.com");
+    expect(parsed.otp).toBe("042915");
+  });
+
+  it("rejects short, long and non-numeric codes", () => {
+    for (const otp of ["12345", "1234567", "abcdef", "12345a", ""]) {
+      expect(verifyOtpSchema.safeParse({ email: "a@b.com", otp }).success).toBe(false);
+    }
   });
 });
 

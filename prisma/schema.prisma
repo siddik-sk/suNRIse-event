@@ -40,6 +40,11 @@ model User {
   rollNumber          String
   role                Role      @default(STUDENT)
   emailVerified       Boolean   @default(false)
+  /// Short-lived 6-digit email OTP (hashed). Cleared once verified or used up.
+  emailOtpHash        String?
+  emailOtpExpiresAt   DateTime?
+  emailOtpAttempts    Int       @default(0)
+  emailOtpSentAt      DateTime?
   failedLoginAttempts Int       @default(0)
   lockedUntil         DateTime?
   lastLoginAt         DateTime?

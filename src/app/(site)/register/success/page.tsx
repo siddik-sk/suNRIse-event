@@ -13,18 +13,19 @@ export const metadata: Metadata = {
 export default async function RegisterSuccessPage({
   searchParams,
 }: {
-  searchParams: Promise<{ email?: string; id?: string }>;
+  searchParams: Promise<{ email?: string; id?: string; otp?: string }>;
 }) {
   const params = await searchParams;
   const email = (params.email ?? "").slice(0, 254);
   const registrationId = (params.id ?? "").slice(0, 40);
   const safeEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? email : "";
+  const devOtp = /^\d{6}$/.test(params.otp ?? "") ? params.otp : "";
 
   const steps = [
     {
       icon: MailCheck,
       title: "Verify your email",
-      body: "Open the link we just sent you. The link expires in 24 hours. Check spam if it is not there.",
+      body: "Enter the 6-digit code we just emailed you, or open the verification link. The code expires in 10 minutes.",
     },
     {
       icon: QrCode,
@@ -60,12 +61,20 @@ export default async function RegisterSuccessPage({
             {safeEmail ? (
               <>
                 {" "}
-                We sent a verification link to <span className="font-semibold text-white/80">{maskEmail(safeEmail)}</span>.
+                We sent a 6-digit verification code to{" "}
+                <span className="font-semibold text-white/80">{maskEmail(safeEmail)}</span>.
               </>
             ) : (
-              " Check your inbox for the verification link."
+              " Check your inbox for your 6-digit verification code."
             )}
           </p>
+
+          {devOtp ? (
+            <p className="mx-auto mt-4 inline-flex items-center gap-2 rounded-xl border border-dashed border-neon-lime/30 bg-neon-lime/[0.05] px-4 py-2 text-xs text-neon-lime/90">
+              Dev code (no mail provider configured):{" "}
+              <span className="font-mono text-sm tracking-[0.3em] text-white">{devOtp}</span>
+            </p>
+          ) : null}
 
           {registrationId ? (
             <div className="mx-auto mt-5 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-4 py-2">

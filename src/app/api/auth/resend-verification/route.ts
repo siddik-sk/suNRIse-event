@@ -1,6 +1,5 @@
 import { assertCsrf, json, parseJson, withApi } from "@/lib/api";
-import { hashToken, randomToken } from "@/lib/auth/tokens";
-import { sendVerificationEmail } from "@/lib/email";
+import { issueEmailVerification } from "@/lib/auth/verification";
 import prisma from "@/lib/prisma";
 import { logSecurityEvent } from "@/lib/security/audit";
 import { getClientIp, rateLimitOrThrow } from "@/lib/security/rate-limit";
@@ -21,24 +20,18 @@ export const POST = withApi(async (req) => {
 
   // Always return the same response to prevent account enumeration.
   if (user && !user.emailVerified) {
-    const raw = randomToken(32);
-    await prisma.emailVerificationToken.updateMany({
-      where: { userId: user.id, usedAt: null },
-      data: { usedAt: new Date() },
-    });
-    await prisma.emailVerificationToken.create({
-      data: {
-        userId: user.id,
-        tokenHash: hashToken(raw),
-        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
-      },
-    });
-    await sendVerificationEmail(user.email, user.name, raw, user.id);
+    const verification = await issueEmailVerification({ user, req });
     await logSecurityEvent({ action: "VERIFICATION_RESENT", userId: user.id, req });
+
+    return json({
+      ok: true,
+      message: "If that account needs verification, a fresh code and link are on the way.",
+      ...(verification.devOtp ? { devOtp: verification.devOtp } : {}),
+    });
   }
 
   return json({
     ok: true,
-    message: "If that account needs verification, a fresh link is on its way.",
+    message: "If that account needs verification, a fresh code and link are on the way.",
   });
 });

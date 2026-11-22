@@ -149,23 +149,45 @@ export async function sendMail(mail: MailOptions): Promise<boolean> {
 const button = (href: string, label: string) =>
   `<a href="${href}" style="display:inline-block;margin:22px 0;padding:14px 26px;border-radius:999px;background:linear-gradient(110deg,#ff2d95,#8b5cf6,#00f0ff);color:#fff;font-weight:800;text-decoration:none;letter-spacing:.4px;">${label}</a>`;
 
-export async function sendVerificationEmail(to: string, name: string, token: string, userId?: string) {
-  const link = absoluteUrl(`/verify-email?token=${encodeURIComponent(token)}`);
-  if (process.env.NODE_ENV !== "production") console.info(`[auth:dev] Verify email for ${to}: ${link}`);
+export async function sendVerificationEmail(opts: {
+  to: string;
+  name: string;
+  token: string;
+  otp: string;
+  baseUrl?: string;
+  ttlMinutes?: number;
+}) {
+  const base = (opts.baseUrl || "").replace(/\/$/, "");
+  const link = base
+    ? `${base}/verify-email?token=${encodeURIComponent(opts.token)}`
+    : absoluteUrl(`/verify-email?token=${encodeURIComponent(opts.token)}`);
+  const ttl = opts.ttlMinutes ?? 10;
+
+  if (process.env.NODE_ENV !== "production") {
+    console.info(`[auth:dev] Verify email for ${opts.to}: link=${link} otp=${opts.otp}`);
+  }
+
+  const code = escapeHtml(opts.otp);
+
   await sendMail({
-    to,
-    subject: `Verify your email · ${FEST.fullName}`,
+    to: opts.to,
+    subject: `${opts.otp} is your verification code · ${FEST.fullName}`,
     html: layout(
       "Verify your email",
-      `<p style="font-size:17px;margin:0 0 8px;">Hey ${escapeHtml(name.split(" ")[0])},</p>
-       <p style="color:#c7bde8;line-height:1.7;">You're one click away from your suNRIseevent '27 pass. Verify your email to activate your account.</p>
+      `<p style="font-size:17px;margin:0 0 8px;">Hey ${escapeHtml(opts.name.split(" ")[0])},</p>
+       <p style="color:#c7bde8;line-height:1.7;margin:0;">Enter this 6-digit code to verify your email and activate your suNRIseevent '27 account.</p>
+       <div style="margin:26px 0;padding:22px 16px;text-align:center;background:#12082b;border:1px dashed #3f2470;border-radius:16px;">
+         <div style="font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#8f83b8;">Your verification code</div>
+         <div style="margin:12px 0 6px;font-family:Consolas,Menlo,monospace;font-size:40px;line-height:1;font-weight:800;letter-spacing:10px;color:#00f0ff;">${code}</div>
+         <div style="font-size:12px;color:#8f83b8;">Expires in ${ttl} minutes</div>
+       </div>
+       <p style="color:#c7bde8;line-height:1.7;">Prefer a link? You can also verify with the button below. The link expires in 24 hours.</p>
        ${button(link, "Verify my email →")}
-       <p style="color:#8f83b8;font-size:13px;line-height:1.7;">This link expires in 24 hours. If you didn't create an account, you can safely ignore this email.</p>
+       <p style="color:#8f83b8;font-size:13px;line-height:1.7;">If you didn't create an account, you can safely ignore this email. Nobody can use the code without your password.</p>
        <p style="color:#5e5482;font-size:11px;word-break:break-all;">${escapeHtml(link)}</p>`,
     ),
-    text: `Verify your suNRIseevent '27 email: ${link}`,
+    text: `Your suNRIseevent '27 verification code is ${opts.otp} (expires in ${ttl} minutes).\n\nOr open this link to verify: ${link}`,
   });
-  void userId;
 }
 
 export async function sendPasswordResetEmail(to: string, name: string, token: string) {

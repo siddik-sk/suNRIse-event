@@ -20,7 +20,7 @@ Built with Next.js 15 (App Router), React 19, TypeScript, Tailwind CSS, Prisma a
 
 ### Student experience
 
-- Multi-step registration with college ID upload, email verification and Passport-style QR pass
+- Multi-step registration with college ID upload, email verification (6-digit OTP or link) and Passport-style QR pass
 - Dashboard with pass download, event selection (up to six), clash detection and profile management
 - Rotating refresh-token sessions with CSRF protection
 
@@ -112,6 +112,15 @@ npm run dev:next
 The seeded student pass uses the demo QR token `SUNRISE27:demo-qr-token-sunriseevent-2027-abcdef`.
 
 > Change or remove demo accounts before going live. Set `SEED_ADMIN_PASSWORD` / `SEED_STUDENT_PASSWORD` before seeding.
+
+### Email verification (OTP)
+
+Signup, login and resend all email the same message: a **6-digit code** (valid for 10 minutes) plus a one-click verification link (valid for 24 hours). Enter the code on the `/login` screen — the OTP panel appears automatically when an unverified account signs in.
+
+- Real delivery requires `RESEND_API_KEY` or `SMTP_HOST`/`SMTP_USER`/`SMTP_PASS` in `.env`.
+- Without a mail provider (local dev) messages are written to `storage/mail/*.html` and the API response includes a `devOtp` field, which the login screen displays inline.
+- Links use `NEXT_PUBLIC_APP_URL` when it is not `localhost`; otherwise they fall back to the request origin, so they work from a phone on the same Wi-Fi.
+- Codes are hashed at rest, capped at 5 attempts, rate-limited per email/IP, and cleared once verified.
 
 ---
 

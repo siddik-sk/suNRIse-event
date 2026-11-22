@@ -124,6 +124,14 @@ export const verifyEmailSchema = z.object({
   token: z.string().min(20, "Invalid verification link.").max(200),
 });
 
+export const verifyOtpSchema = z.object({
+  email,
+  otp: z
+    .string({ required_error: "Enter the 6-digit code from your email." })
+    .transform((v) => v.replace(/\s+/g, ""))
+    .pipe(z.string().regex(/^\d{6}$/, "Enter the 6-digit code from your email.")),
+});
+
 export const resendVerificationSchema = z.object({ email });
 
 export const updateProfileSchema = z.object({

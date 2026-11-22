@@ -6,11 +6,14 @@ import { Prisma } from "@prisma/client";
 export class ApiError extends Error {
   status: number;
   code: string;
-  constructor(status: number, message: string, code = "API_ERROR") {
+  details?: Record<string, unknown>;
+
+  constructor(status: number, message: string, code = "API_ERROR", details?: Record<string, unknown>) {
     super(message);
     this.name = "ApiError";
     this.status = status;
     this.code = code;
+    this.details = details;
   }
 }
 
@@ -23,7 +26,15 @@ export function json<T>(data: T, init?: ResponseInit) {
 
 export function apiError(error: unknown) {
   if (error instanceof ApiError) {
-    return json({ ok: false, error: error.message, code: error.code }, { status: error.status });
+    return json(
+      {
+        ok: false,
+        error: error.message,
+        code: error.code,
+        ...(error.details ? { details: error.details } : {}),
+      },
+      { status: error.status },
+    );
   }
 
   if (error instanceof ZodError) {

@@ -6,13 +6,21 @@ export class ApiClientError extends Error {
   status: number;
   code?: string;
   fieldErrors?: Record<string, string>;
+  data?: Record<string, unknown>;
 
-  constructor(message: string, status: number, code?: string, fieldErrors?: Record<string, string>) {
+  constructor(
+    message: string,
+    status: number,
+    code?: string,
+    fieldErrors?: Record<string, string>,
+    data?: Record<string, unknown>,
+  ) {
     super(message);
     this.name = "ApiClientError";
     this.status = status;
     this.code = code;
     this.fieldErrors = fieldErrors;
+    this.data = data;
   }
 }
 
@@ -48,16 +56,17 @@ async function parseResponse<T>(res: Response): Promise<T> {
     data = null;
   }
   if (!res.ok) {
-    const payload = (data ?? {}) as {
+    const payload = (data && typeof data === "object" ? data : {}) as {
       error?: string;
       code?: string;
       fieldErrors?: Record<string, string>;
-    };
+    } & Record<string, unknown>;
     throw new ApiClientError(
       payload.error || "Something went wrong. Please try again.",
       res.status,
       payload.code,
       payload.fieldErrors,
+      payload,
     );
   }
   return data as T;

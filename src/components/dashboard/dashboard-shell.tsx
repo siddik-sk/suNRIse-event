@@ -222,7 +222,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
           <div className="border-b border-neon-amber/20 bg-neon-amber/[0.06] px-4 py-2.5 text-center text-xs text-neon-amber sm:px-6">
             Your email is not verified yet.{" "}
             <Link href={`/verify-email?email=${encodeURIComponent(user.email)}`} className="font-semibold underline">
-              Resend the verification link
+              Resend the verification code
             </Link>
             .
           </div>
