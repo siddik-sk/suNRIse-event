@@ -8,15 +8,21 @@ type VerifiableUser = { id: string; email: string; name: string };
 
 /** True when a real email provider (Resend or SMTP) is configured. */
 export function mailProviderConfigured(): boolean {
-  return Boolean(process.env.RESEND_API_KEY || process.env.SMTP_HOST);
+  return Boolean(
+    process.env.RESEND_API_KEY ||
+      process.env.SMTP_HOST ||
+      (process.env.EMAIL_USER && process.env.EMAIL_APP_PASSWORD),
+  );
 }
 
 /**
- * In local development without a mail provider we surface the OTP in the API
- * response so the flow is testable. Never enabled in production.
+ * In local development without a mail provider (or when delivery failed) we
+ * surface the OTP in the API response so the flow stays testable. Never
+ * enabled in production.
  */
-export function shouldExposeDevOtp(): boolean {
-  return process.env.NODE_ENV !== "production";
+export function shouldExposeDevOtp(delivered = true): boolean {
+  if (process.env.NODE_ENV === "production") return false;
+  return !mailProviderConfigured() || !delivered;
 }
 
 function isLoopbackHost(host: string) {
@@ -92,6 +98,6 @@ export async function issueEmailVerification({ user, req }: { user: VerifiableUs
     token,
     otp,
     delivered,
-    devOtp: shouldExposeDevOtp() ? otp : undefined,
+    devOtp: shouldExposeDevOtp(delivered) ? otp : undefined,
   };
 }

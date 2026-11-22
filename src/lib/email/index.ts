@@ -15,8 +15,35 @@ type MailOptions = {
   attachments?: Attachment[];
 };
 
-const FROM = process.env.MAIL_FROM || "suNRIseevent '27 <no-reply@sunriseevent.in>";
 const MAIL_DIR = path.join(process.cwd(), "storage", "mail");
+
+/**
+ * Resolve SMTP settings. Supports both the standard SMTP_* names and the
+ * simpler EMAIL_USER / EMAIL_APP_PASSWORD pair (Gmail-friendly).
+ */
+function smtpHost() {
+  return (
+    process.env.SMTP_HOST?.trim() ||
+    (process.env.EMAIL_USER?.trim() || process.env.SMTP_USER?.trim() ? "smtp.gmail.com" : "")
+  );
+}
+
+function smtpUser() {
+  return (process.env.SMTP_USER?.trim() || process.env.EMAIL_USER?.trim() || "");
+}
+
+function smtpPass() {
+  // Google displays app passwords in groups of four; strip the spaces.
+  return (process.env.SMTP_PASS || process.env.EMAIL_APP_PASSWORD || "").replace(/\s+/g, "");
+}
+
+/** Gmail rejects a From address it does not own, so fall back to the sender. */
+function mailFrom() {
+  const configured = process.env.MAIL_FROM?.trim();
+  const user = smtpUser();
+  if (user && /gmail\.com$/i.test(smtpHost())) return `suNRIseevent '27 <${user}>`;
+  return configured || (user ? `suNRIseevent '27 <${user}>` : "suNRIseevent '27 <no-reply@sunriseevent.in>");
+}
 
 function escapeHtml(value: string) {
   return value
@@ -55,19 +82,16 @@ function layout(title: string, body: string) {
 let transporter: Transporter | null = null;
 
 function smtpConfigured() {
-  return Boolean(process.env.SMTP_HOST);
+  return Boolean(smtpHost() && smtpUser() && smtpPass());
 }
 
 function getTransporter(): Transporter {
   if (!transporter) {
     transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
+      host: smtpHost(),
       port: Number(process.env.SMTP_PORT || 587),
       secure: process.env.SMTP_SECURE === "true",
-      auth:
-        process.env.SMTP_USER && process.env.SMTP_PASS
-          ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
-          : undefined,
+      auth: smtpUser() && smtpPass() ? { user: smtpUser(), pass: smtpPass() } : undefined,
     });
   }
   return transporter;
@@ -101,7 +125,7 @@ async function sendViaResend(mail: MailOptions) {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      from: FROM,
+      from: mailFrom(),
       to: [mail.to],
       subject: mail.subject,
       html: mail.html,
@@ -125,7 +149,7 @@ export async function sendMail(mail: MailOptions): Promise<boolean> {
     }
     if (smtpConfigured()) {
       await getTransporter().sendMail({
-        from: FROM,
+        from: mailFrom(),
         to: mail.to,
         subject: mail.subject,
         html: mail.html,
@@ -142,6 +166,10 @@ export async function sendMail(mail: MailOptions): Promise<boolean> {
     return true;
   } catch (error) {
     console.error("[mail] delivery failed:", error instanceof Error ? error.message : "unknown");
+    if (process.env.NODE_ENV !== "production") {
+      // Keep the flow testable locally even when SMTP credentials fail.
+      await writeDevPreview(mail).catch(() => {});
+    }
     return false;
   }
 }
@@ -169,7 +197,7 @@ export async function sendVerificationEmail(opts: {
 
   const code = escapeHtml(opts.otp);
 
-  await sendMail({
+  return sendMail({
     to: opts.to,
     subject: `${opts.otp} is your verification code · ${FEST.fullName}`,
     html: layout(

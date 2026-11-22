@@ -117,7 +117,7 @@ The seeded student pass uses the demo QR token `SUNRISE27:demo-qr-token-sunrisee
 
 Signup, login and resend all email the same message: a **6-digit code** (valid for 10 minutes) plus a one-click verification link (valid for 24 hours). Enter the code on the `/login` screen — the OTP panel appears automatically when an unverified account signs in.
 
-- Real delivery requires `RESEND_API_KEY` or `SMTP_HOST`/`SMTP_USER`/`SMTP_PASS` in `.env`.
+- Real delivery requires `RESEND_API_KEY`, or SMTP via `SMTP_HOST`/`SMTP_USER`/`SMTP_PASS`, or the Gmail shortcut `EMAIL_USER` + `EMAIL_APP_PASSWORD` (host defaults to `smtp.gmail.com`).
 - Without a mail provider (local dev) messages are written to `storage/mail/*.html` and the API response includes a `devOtp` field, which the login screen displays inline.
 - Links use `NEXT_PUBLIC_APP_URL` when it is not `localhost`; otherwise they fall back to the request origin, so they work from a phone on the same Wi-Fi.
 - Codes are hashed at rest, capped at 5 attempts, rate-limited per email/IP, and cleared once verified.
